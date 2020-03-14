@@ -8,6 +8,19 @@ from sprites import (MasterSprite, Ship, Alien, Missile, BombPowerup,
 from database import Database
 from load import load_image, load_sound, load_music
 
+import time
+import bluetooth
+from mindwavemobile.MindwaveDataPoints import RawDataPoint
+from mindwavemobile.MindwaveDataPointReader import MindwaveDataPointReader
+import sys
+
+
+mindwaveDataPointReader = MindwaveDataPointReader()
+mindwaveDataPointReader.start()
+if (not mindwaveDataPointReader.isConnected()):
+    sys.exit()
+
+
 if not pygame.mixer:
     print('Warning, sound disabled')
 if not pygame.font:
@@ -31,6 +44,15 @@ class Keyboard(object):
 
 
 def main():
+
+    #mindwaveDataPointReader = MindwaveDataPointReader()
+    #mindwaveDataPointReader.start()
+    #if not (mindwaveDataPointReader.isConnected()):
+        #print((textwrap.dedent("""\
+            #Exiting because the program could not connect
+            #to the Mindwave Mobile device.""").replace("\n", " ")))
+        #sys.exit()
+
     # Initialize everything
     pygame.mixer.pre_init(11025, -16, 2, 512)
     pygame.init()
@@ -218,8 +240,20 @@ def main():
             screen.blit(txt, pos)
         pygame.display.flip()
 
+    medVal = 0
+    attVal = 0
+
     while ship.alive:
         clock.tick(clockTime)
+
+        dataPoint = mindwaveDataPointReader.readNextDataPoint()
+        if (not dataPoint.__class__ is RawDataPoint):
+                if dataPoint.__class__.__name__ == 'MeditationDataPoint':
+                    medVal = dataPoint.meditationValue
+                    print("Meditaion Value: ", medVal)
+                elif dataPoint.__class__.__name__ == 'AttentionDataPoint':
+                    attVal = dataPoint.attentionValue
+                    print("Attention Value: ", attVal)
 
         if aliensLeftThisWave >= 20:
             powerupTimeLeft -= 1
@@ -235,12 +269,12 @@ def main():
                 return
             elif (event.type == pygame.KEYDOWN
                   and event.key in direction.keys()):
-                ship.horiz += direction[event.key][0] * speed
-                ship.vert += direction[event.key][1] * speed
+                ship.horiz += direction[event.key][0] * speed #*medVal
+                ship.vert += direction[event.key][1] * speed #*medVal
             elif (event.type == pygame.KEYUP
                   and event.key in direction.keys()):
-                ship.horiz -= direction[event.key][0] * speed
-                ship.vert -= direction[event.key][1] * speed
+                ship.horiz -= direction[event.key][0] * speed #*medVal
+                ship.vert -= direction[event.key][1] * speed #*medVal
             elif (event.type == pygame.KEYDOWN
                   and event.key == pygame.K_SPACE):
                 Missile.position(ship.rect.midtop)
@@ -273,7 +307,12 @@ def main():
                 if pygame.sprite.collide_rect(
                         missile, alien) and alien in Alien.active:
                     alien.table()
-                    missile.table()
+                    """
+                    Peiercing bullets
+                    if attVal < 10:
+                        missile.table()
+                    """
+                    #missile.table()
                     Explosion.position(alien.rect.center)
                     aliensLeftThisWave -= 1
                     score += 1
@@ -316,13 +355,15 @@ def main():
         waveText = font.render("Wave: " + str(wave), 1, BLUE)
         leftText = font.render("Aliens Left: " + str(aliensLeftThisWave),
                                1, BLUE)
-        scoreText = font.render("Score: " + str(score), 1, BLUE)
+        scoreText = font.render("Score: " + str(score) + "\n\nAttention: " + str(attVal) + "\nMeditation: " + str(medVal), 1, BLUE)
+
         bombText = font.render("Bombs: " + str(bombsHeld), 1, BLUE)
 
         wavePos = waveText.get_rect(topleft=screen.get_rect().topleft)
         leftPos = leftText.get_rect(midtop=screen.get_rect().midtop)
         scorePos = scoreText.get_rect(topright=screen.get_rect().topright)
         bombPos = bombText.get_rect(bottomleft=screen.get_rect().bottomleft)
+
 
         text = [waveText, leftText, scoreText, bombText]
         textposition = [wavePos, leftPos, scorePos, bombPos]
