@@ -245,7 +245,7 @@ def main():
 
     while ship.alive:
         clock.tick(clockTime)
-
+        
         dataPoint = mindwaveDataPointReader.readNextDataPoint()
         if (not dataPoint.__class__ is RawDataPoint):
                 if dataPoint.__class__.__name__ == 'MeditationDataPoint':
@@ -254,7 +254,7 @@ def main():
                 elif dataPoint.__class__.__name__ == 'AttentionDataPoint':
                     attVal = dataPoint.attentionValue
                     print("Attention Value: ", attVal)
-
+        
         if aliensLeftThisWave >= 20:
             powerupTimeLeft -= 1
         if powerupTimeLeft <= 0:
@@ -355,18 +355,20 @@ def main():
         waveText = font.render("Wave: " + str(wave), 1, BLUE)
         leftText = font.render("Aliens Left: " + str(aliensLeftThisWave),
                                1, BLUE)
-        scoreText = font.render("Score: " + str(score) + "\n\nAttention: " + str(attVal) + "\nMeditation: " + str(medVal), 1, BLUE)
+        scoreText = font.render("Score: " + str(score), 1, BLUE)
 
+        dataText = font.render("(A): " + str(attVal) + " (M): " + str(medVal), 1, RED)
         bombText = font.render("Bombs: " + str(bombsHeld), 1, BLUE)
 
         wavePos = waveText.get_rect(topleft=screen.get_rect().topleft)
         leftPos = leftText.get_rect(midtop=screen.get_rect().midtop)
         scorePos = scoreText.get_rect(topright=screen.get_rect().topright)
         bombPos = bombText.get_rect(bottomleft=screen.get_rect().bottomleft)
+        dataPos = dataText.get_rect(bottomright=screen.get_rect().bottomright)
 
 
-        text = [waveText, leftText, scoreText, bombText]
-        textposition = [wavePos, leftPos, scorePos, bombPos]
+        text = [waveText, leftText, scoreText, bombText, dataText]
+        textposition = [wavePos, leftPos, scorePos, bombPos, dataPos]
 
     # Detertmine when to move to next wave
         if aliensLeftThisWave <= 0:
