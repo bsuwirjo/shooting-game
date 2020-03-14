@@ -240,12 +240,11 @@ def main():
             screen.blit(txt, pos)
         pygame.display.flip()
 
+
+
     medVal = 0
     attVal = 0
-
-    while ship.alive:
-        clock.tick(clockTime)
-        
+    while medVal == 0 and attVal == 0:
         dataPoint = mindwaveDataPointReader.readNextDataPoint()
         if (not dataPoint.__class__ is RawDataPoint):
                 if dataPoint.__class__.__name__ == 'MeditationDataPoint':
@@ -254,7 +253,19 @@ def main():
                 elif dataPoint.__class__.__name__ == 'AttentionDataPoint':
                     attVal = dataPoint.attentionValue
                     print("Attention Value: ", attVal)
-        
+
+    while ship.alive:
+        clock.tick(clockTime)
+
+        dataPoint = mindwaveDataPointReader.readNextDataPoint()
+        if (not dataPoint.__class__ is RawDataPoint):
+                if dataPoint.__class__.__name__ == 'MeditationDataPoint':
+                    medVal = dataPoint.meditationValue
+                    print("Meditaion Value: ", medVal)
+                elif dataPoint.__class__.__name__ == 'AttentionDataPoint':
+                    attVal = dataPoint.attentionValue
+                    print("Attention Value: ", attVal)
+
         if aliensLeftThisWave >= 20:
             powerupTimeLeft -= 1
         if powerupTimeLeft <= 0:
@@ -307,12 +318,10 @@ def main():
                 if pygame.sprite.collide_rect(
                         missile, alien) and alien in Alien.active:
                     alien.table()
-                    """
-                    Peiercing bullets
-                    if attVal < 10:
+
+                    #Peiercing bullets
+                    if medVal < 40:
                         missile.table()
-                    """
-                    #missile.table()
                     Explosion.position(alien.rect.center)
                     aliensLeftThisWave -= 1
                     score += 1
